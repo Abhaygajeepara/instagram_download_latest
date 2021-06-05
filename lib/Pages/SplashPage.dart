@@ -4,10 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_download/Pages/home.dart';
 import 'package:instagram_download/Service/InstaFeed.dart';
+import 'package:instagram_download/Service/InstaFeed.dart';
 
 import 'package:provider/provider.dart';
 class SplashPage extends StatefulWidget {
-
+  InstaFeed instaFeed;
+  SplashPage({@required this.instaFeed});
 
   @override
   _SplashPageState createState() => _SplashPageState();
@@ -28,7 +30,7 @@ class _SplashPageState extends State<SplashPage>with SingleTickerProviderStateMi
 
   }
   wait()async{
-   // await widget.instaFeedProvider.getClipData();
+    await widget.instaFeed.getClipData();
     Timer(Duration(seconds:6), (){
       setState(() {
         isSplash = false;

@@ -164,9 +164,11 @@ getFile()async{
     return StreamBuilder<ClipBoardModel>(
         stream: _instaFeedProvider.CLIPSTREAM,
         builder: (context,clipsnapshot) {
+
           if(clipsnapshot.hasData){
             //print(clipsnapshot.data.url);
-            feedUrl.text= clipsnapshot.data.url!= 'Incorrect' || !null ?clipsnapshot.data.url:'';
+            feedUrl.text = clipsnapshot.data.url;
+          //  feedUrl.text= clipsnapshot.data.url!= ' ' || !null ?clipsnapshot.data.url:'';
 return localHome(feedUrl.text, context);
             // if(feedUrl.text!=''){
             //
@@ -340,7 +342,7 @@ return localHome(feedUrl.text, context);
                         //feedUrl.text != null
                         //  await _instaFeed.getImageFromFeedUrl();
 
-                        await _instaFeed.addToDownloadQueue();
+                        await _instaFeed.addToDownloadQueue(_instaFeed.posts);
                       }
                     },
                     child: Container(

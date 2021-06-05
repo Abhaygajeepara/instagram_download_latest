@@ -268,13 +268,19 @@ class InstaFeed {
   //   final fu =  _tempFile.writeAsBytes(byteData.buffer.asInt8List(byteData.offsetInBytes,byteData.lengthInBytes));
   //   await fu;
   // }
-  void addToDownloadQueue(){
+  void addToDownloadQueue(List<InstalPost> listofPost){
+
     downloadQueue = [];
-    for(InstalPost i in posts){
-      DownloadTask d = DownloadTask(url: i.contentUrl,status: DownloadTask.STATUS_PENDING,fileName: _getFileName(i.isVideo),path: _perminentPath,notificationId: counter);
+    for(int i=0;i<listofPost.length;i++){
+      DownloadTask d = DownloadTask(url: listofPost[i].contentUrl,status: DownloadTask.STATUS_PENDING,fileName: _getFileName(listofPost[i].isVideo),path: _perminentPath,notificationId: counter);
       counter++;
       downloadQueue.add(d);
     }
+    // for(InstalPost i in posts){
+    //   DownloadTask d = DownloadTask(url: i.contentUrl,status: DownloadTask.STATUS_PENDING,fileName: _getFileName(i.isVideo),path: _perminentPath,notificationId: counter);
+    //   counter++;
+    //   downloadQueue.add(d);
+    // }
     refreshDownloadTask();
   }
   void refreshDownloadTask(){
@@ -319,7 +325,7 @@ getClipData()async{
 
       if(data == null){
 
-        ClipBoardModel clipboard = ClipBoardModel.of('Incorrect');
+        ClipBoardModel clipboard = ClipBoardModel.of(' ');
         return    clipController.sink.add(clipboard);
 
       }
@@ -337,7 +343,7 @@ getClipData()async{
           }
           else{
 
-             clipboard =   ClipBoardModel.of('');
+             clipboard =   ClipBoardModel.of(' ');
              return   clipController.sink.add(clipboard);
 
           }

@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
 
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: SplashPage(),
+      home: SplashPage(instaFeed: _instaFeedProvider,),
       debugShowCheckedModeBanner: false,
     );
   }
