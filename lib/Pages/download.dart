@@ -1,11 +1,15 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:instagram_download/Common/CommonAssest.dart';
 import 'package:instagram_download/Model/FileInfo.dart';
 import 'package:instagram_download/Pages/Preview/VideoPreview.dart';
-import 'package:instagram_download/Pages/Preview/imagePreview.dart';
+import 'package:instagram_download/Pages/Preview/mediaPreview.dart';
+
+import 'package:instagram_download/Service/adService.dart';
 
 import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,18 +23,23 @@ class DownloadPage extends StatefulWidget {
 }
 
 class _DownloadPageState extends State<DownloadPage> {
+
 @override
   void dispose() {
     // TODO: implement dispose
+  for(int i =0;i<controllerList.length;i++){
+    controllerList[i].dispose();
+  }
+  adsService.createbannerAd().dispose();
     super.dispose();
 
-    for(int i =0;i<controllerList.length;i++){
-      controllerList[i].dispose();
-    }
+
   }
+
   void initState() {
     // TODO: implement initState
     super.initState();
+
     getFile();
     _imageScrollController.addListener(() {
       if(_imageScrollController.position.pixels == _imageScrollController.position.maxScrollExtent){
@@ -45,21 +54,26 @@ class _DownloadPageState extends State<DownloadPage> {
 
   }
   moreImage(){
+if(currentImage<listOfImage.length-1){
+  print('currentImage${currentImage}');
 
-    for(int i = currentImage;i<maxImage;i++){
-      displayOfImage.add(listOfImage[i]);
-      currentImage   =i;
-    }
-    maxImage = maxImage+10 <listOfImage.length?maxImage+10:(listOfImage.length-maxImage);
-    print(maxImage);
-    setState(() {
+  for(int i = currentImage;i<maxImage;i++){
+    displayOfImage.add(listOfImage[i]);
+    currentImage   =i+1;
+  }
+  print(maxImage);
+  maxImage = maxImage+10 <listOfImage.length?maxImage+10:maxImage+(listOfImage.length-maxImage);
 
-    });
+  setState(() {
+
+  });
+}
+
   }
   moreVideo()async{
     for(int i = currentVideo;i<maxVideo;i++){
       displayOffVideo.add(listOfVideo[i]);
-      currentVideo   =i;
+      currentVideo   =i+1;
       VideoPlayerController _controller =   VideoPlayerController.file(listOfVideo[i].path);
       _initializeVideoPlayerFuture =
           _controller.initialize();
@@ -67,7 +81,7 @@ class _DownloadPageState extends State<DownloadPage> {
       controllerList.add(_controller);
     }
 
-    maxVideo = maxVideo+10 <listOfVideo.length?maxVideo+10:(listOfVideo.length-maxVideo);
+    maxVideo = maxVideo+10 <listOfVideo.length?maxVideo+10:maxVideo+ (listOfVideo.length-maxVideo);
 
     setState(() {
 
@@ -84,6 +98,7 @@ class _DownloadPageState extends State<DownloadPage> {
   List<LocalFileInfo> displayOffVideo = List();
   List<VideoPlayerController> controllerList;
   Future<void> _initializeVideoPlayerFuture;
+  AdsService adsService = AdsService();
   int  currentImage =0;
   int  currentVideo = 0;
   int maxImage =0;
@@ -94,7 +109,7 @@ List fileTypeList =['Image','video'];
   getFile()async{
     listOfVideo.clear();
     listOfImage.clear();
-
+    listOfFile.clear();
     controllerList = List();
 
     // List videoExtensionList =  ['mp4','mov','wmv','flv','avi','avchd','webm','mkv'];
@@ -124,8 +139,12 @@ List fileTypeList =['Image','video'];
         d.create(recursive: true);
       }
 
-      listOfFile = Directory("$_permanentPath/").listSync();
-      for(int i=0;i<listOfFile.length;i++){
+    List  listOf = Directory("$_permanentPath/").listSync();
+      listOfFile= listOf.reversed.toList();
+for(int i =0;i<listOfFile.length;i++){
+  print(listOfFile[i].toString());
+}
+      for(int i=0;i<listOfFile.reversed.length;i++){
    if(listOfFile[i].toString().substring(0,4)=='File'){
      String filepathString = listOfFile[i].toString();
      var firstIndexOfComa=  filepathString.indexOf("'");
@@ -160,11 +179,13 @@ List fileTypeList =['Image','video'];
 
        }
    }
-    
+
 
 
 
       }
+
+
 maxImage  = listOfImage.length<11?listOfImage.length:10;
       maxVideo =listOfVideo.length<11?listOfVideo.length:10;
       moreImage();
@@ -189,11 +210,19 @@ setState(() {
   Widget build(BuildContext context) {
 final size = MediaQuery.of(context).size;
 
-// getFile();
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: size.width*0.01, vertical: size.height*0.02),
       child: Column(
         children: [
+          // Container(
+          //   height: 50,
+          //   child: AdWidget(
+          //     ad:adsService.createbannerAd()..load(),
+          //     key: UniqueKey(),
+          //   ),
+          //
+          // ),
           Container(
             height: size.height*0.05,
             child: ListView.builder(
@@ -246,7 +275,15 @@ final size = MediaQuery.of(context).size;
           return Card(
             child: ListTile(
               onTap: (){
-                showImage(displayOfImage[index].path);
+                // showImage(displayOfImage[index].path);
+                return    Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => MediaPreview(filepath:[] ,isFile: true,file:displayOfImage[index].path ,),
+                    transitionDuration: Duration(seconds: 0),
+                  ),
+                );
+
               },
              leading: Image.file(displayOfImage[index].path),
               title: Text(

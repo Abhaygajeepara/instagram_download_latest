@@ -16,6 +16,14 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
+  AdsService adsService = AdsService();
+  @override
+  void dispose() {
+    adsService.createbannerAd().dispose();
+    // TODO: implement dispose
+    super.dispose();
+
+  }
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -65,46 +73,48 @@ class _AppDrawerState extends State<AppDrawer> {
                        ],
                      )
                  ),
+                 // ListTile(
+                 //     onTap: (){
+                 //       Navigator.pop(context);
+                 //       return    Navigator.push(
+                 //         context,
+                 //         PageRouteBuilder(
+                 //           pageBuilder: (_, __, ___) => Setting(),
+                 //           transitionDuration: Duration(seconds: 0),
+                 //         ),
+                 //       );
+                 //     },
+                 //     title: Row(
+                 //
+                 //       children: [
+                 //         Container(
+                 //           height: size.height*0.05,
+                 //           width: size.width*0.1,
+                 //           decoration: BoxDecoration(
+                 //             borderRadius: BorderRadius.circular(20.0),
+                 //             gradient: LinearGradient(
+                 //               begin: Alignment.topLeft,
+                 //               end: Alignment.topRight,
+                 //               colors: <Color>[
+                 //                 Color(0xfff34a36),
+                 //
+                 //                 Color(0xfffe62a3f),
+                 //                 Color(0xfffcd195b),
+                 //               ],
+                 //             ),
+                 //           ),
+                 //           child: Center(child: Icon(Icons.settings,color: drawerIconColor,size: iconSize,),),
+                 //         ),
+                 //         SizedBox(width: spaceHor,),
+                 //         Text('Setting',style: TextStyle(
+                 //             fontSize: textSize
+                 //         ),),
+                 //       ],
+                 //     )
+                 // ),
                  ListTile(
                      onTap: (){
-                       return    Navigator.push(
-                         context,
-                         PageRouteBuilder(
-                           pageBuilder: (_, __, ___) => Setting(),
-                           transitionDuration: Duration(seconds: 0),
-                         ),
-                       );
-                     },
-                     title: Row(
-
-                       children: [
-                         Container(
-                           height: size.height*0.05,
-                           width: size.width*0.1,
-                           decoration: BoxDecoration(
-                             borderRadius: BorderRadius.circular(20.0),
-                             gradient: LinearGradient(
-                               begin: Alignment.topLeft,
-                               end: Alignment.topRight,
-                               colors: <Color>[
-                                 Color(0xfff34a36),
-
-                                 Color(0xfffe62a3f),
-                                 Color(0xfffcd195b),
-                               ],
-                             ),
-                           ),
-                           child: Center(child: Icon(Icons.settings,color: drawerIconColor,size: iconSize,),),
-                         ),
-                         SizedBox(width: spaceHor,),
-                         Text('Setting',style: TextStyle(
-                             fontSize: textSize
-                         ),),
-                       ],
-                     )
-                 ),
-                 ListTile(
-                     onTap: (){
+                      Navigator.pop(context);
                        return    Navigator.push(
                          context,
                          PageRouteBuilder(
@@ -146,6 +156,7 @@ class _AppDrawerState extends State<AppDrawer> {
                        showDialog(
                            context: context,
                            builder: (context){
+                            // Navigator.pop(context);
                              return AlertDialog(
                                content: Text('add Something'),
                              );
@@ -189,7 +200,7 @@ class _AppDrawerState extends State<AppDrawer> {
                  ),
                  ListTile(
                    onTap: (){
-
+                    Navigator.pop(context);
                      return    Navigator.push(
                        context,
                        PageRouteBuilder(
@@ -233,7 +244,7 @@ class _AppDrawerState extends State<AppDrawer> {
             Container(
               height: 50,
               child: AdWidget(
-                ad: AdsService().createbannerAd()..load(),
+                ad: adsService.createbannerAd()..load(),
                 key: UniqueKey(),
               ),
 

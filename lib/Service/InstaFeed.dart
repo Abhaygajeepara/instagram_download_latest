@@ -41,6 +41,8 @@ void callbackhandler(){
   });
 }
 Future sendnotification(int id,int pro,String filename) async{
+
+  print('filename = ${filename}');
   bool showProgress = true;
   String notificationBody = "${pro.toString()}%";
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -65,7 +67,7 @@ Future sendnotification(int id,int pro,String filename) async{
   );
   NotificationDetails platformChannelSpecifics =
   NotificationDetails(android: androidPlatformChannelSpecifics);
-   flutterLocalNotificationsPlugin.show(id, "download", notificationBody, platformChannelSpecifics);
+   flutterLocalNotificationsPlugin.show(id, filename, notificationBody, platformChannelSpecifics);
 }
 class DownloadTask{
   static const String STATUS_PENDING = "status_pending";
@@ -353,6 +355,20 @@ getClipData()async{
     },
   );
 }
+  getPermission(List<InstalPost> listofPost)async{
+    var permission=  Permission.storage;
+    if(await permission.isGranted){
+addToDownloadQueue(listofPost);
+
+    }
+    else if(await permission.isPermanentlyDenied){
+      openAppSettings();
+    }
+    else{
+      permission.request();
+    }
+
+  }
 }
 
 // StreamController<ClipBoardModel> clipController = BehaviorSubject<ClipBoardModel>();

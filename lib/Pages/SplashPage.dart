@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:instagram_download/Pages/home.dart';
 import 'package:instagram_download/Service/InstaFeed.dart';
 import 'package:instagram_download/Service/InstaFeed.dart';
+import 'package:instagram_download/Service/adService.dart';
 
 import 'package:provider/provider.dart';
 class SplashPage extends StatefulWidget {
@@ -19,6 +21,36 @@ class _SplashPageState extends State<SplashPage>with SingleTickerProviderStateMi
   bool isSplash = true;
   AnimationController _animationController;
   Animation animation;
+  AdsService adsService = AdsService();
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    adsService.interstitialAd.dispose();
+  }
+  // InterstitialAd interstitialAd=InterstitialAd(
+  //   adUnitId: 'ca-app-pub-3940256099942544/5224354917',
+  //   request: AdRequest(),
+  //   listener: AdListener(
+  //     onAdFailedToLoad: (Ad ad, LoadAdError error) {
+  //       print('Ad failed to load: $error');
+  //     },
+  //     onAdClosed: (Ad ad){
+  //       ad.dispose();
+  //
+  //
+  //     },
+  //
+  //     onAdLoaded: (Ad ad){
+  //       print(ad.isLoaded());
+  //       print('ad us loadd');
+  //     },
+  //     onRewardedAdUserEarnedReward: (RewardedAd ad, RewardItem reward) {
+  //       print(reward.type);
+  //       print(reward.amount);
+  //     },
+  //   ),
+  // );
   @override
   void initState() {
     // TODO: implement initState
@@ -30,16 +62,24 @@ class _SplashPageState extends State<SplashPage>with SingleTickerProviderStateMi
 
   }
   wait()async{
+    await adsService.interstitialAd.load();
     await widget.instaFeed.getClipData();
+
+
+
+
+
     Timer(Duration(seconds:6), (){
       setState(() {
         isSplash = false;
+        adsService.interstitialAd.show();
       });
     });
   }
   @override
 
   Widget build(BuildContext context) {
+
      final _instaFeedProvider= Provider.of<InstaFeed>(context);
      // _instaFeedProvider.getClipData();
     final size = MediaQuery.of(context).size;
@@ -71,7 +111,7 @@ class _SplashPageState extends State<SplashPage>with SingleTickerProviderStateMi
 
               children: [
                 
-                Image.asset('assest/AppLogo.png',
+                Image.asset('assest/SplashLogo.png',
                   height: size.height*0.15,
 
 

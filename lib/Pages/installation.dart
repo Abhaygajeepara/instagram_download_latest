@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:instagram_download/Common/CommonAssest.dart';
+import 'package:instagram_download/Service/adService.dart';
 import 'package:instagram_download/Widgets/Drawer.dart';
 import 'package:instagram_download/Widgets/appbar.dart';
 
@@ -9,6 +11,14 @@ class Installation extends StatefulWidget {
 }
 
 class _InstallationState extends State<Installation> {
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    adsService.createbannerAd()..load();
+    super.dispose();
+
+  }
+  AdsService adsService = AdsService();
   List data =[
     {
       'text':"Press 'Paste Link' button to load videos/images/reels",
@@ -83,6 +93,14 @@ class _InstallationState extends State<Installation> {
             );
           }),
       drawer: AppDrawer(),
+    //     bottomNavigationBar: Container(
+    //       height: 50,
+    //       child: AdWidget(
+    //         ad:adsService.createbannerAd()..load(),
+    //         key: UniqueKey(),
+    //       ),
+    //
+    //     )
     );
   }
 }

@@ -6,7 +6,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdsService{
   String bannerId = 'ca-app-pub-3940256099942544/6300978111';
-  String instantiateId = 'ca-app-pub-3940256099942544/8691691433';
+  //String instantiateId = 'ca-app-pub-3940256099942544/5224354917';
   static initialize(){
     if(MobileAds.instance== null){
       MobileAds.instance.initialize();
@@ -24,6 +24,7 @@ class AdsService{
     ), request: AdRequest());
     return _ad;
   }
+
   InterstitialAd interstitialAd=InterstitialAd(
     adUnitId: 'ca-app-pub-3940256099942544/5224354917',
     request: AdRequest(),

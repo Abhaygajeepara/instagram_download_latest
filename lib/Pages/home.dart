@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:carousel_slider/carousel_slider.dart';
@@ -10,9 +11,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:instagram_download/Common/CommonAssest.dart';
 import 'package:instagram_download/Common/inputDecoration.dart';
 import 'package:instagram_download/Common/loading.dart';
+import 'package:instagram_download/Common/toaster.dart';
 import 'package:instagram_download/Model/Clipboard.dart';
 import 'package:instagram_download/Pages/Preview/VideoPreview.dart';
-import 'package:instagram_download/Pages/Preview/imagePreview.dart';
+import 'package:instagram_download/Pages/Preview/mediaPreview.dart';
+
 import 'package:instagram_download/Pages/download.dart';
 import 'package:instagram_download/Service/InstaFeed.dart';
 import 'package:instagram_download/Service/adService.dart';
@@ -28,12 +31,12 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home>with SingleTickerProviderStateMixin {
-
+  Timer adloader ;
   final _formKey= GlobalKey<FormState>();
   InstaFeed _instaFeed;
   bool isFeedUrlEmpty = true;
   Future<void> _initializeVideoPlayerFuture;
-  bool loading = false;
+  bool loading = true;
   var feedUrl = TextEditingController();
   List<VideoPlayerController> controller=List();
   int pageIndex = 0;
@@ -42,48 +45,34 @@ class _HomeState extends State<Home>with SingleTickerProviderStateMixin {
   AdsService adsService = AdsService();
   InterstitialAd rewardedAd;
   final CarouselController _carouselSliderController = CarouselController();
+  PageController pageController = PageController();
 @override
   void dispose() {
     // TODO: implement dispose
+  adsService.createbannerAd()..dispose();
     super.dispose();
 
   }
   @override
   void initState() {
     // TODO: implement initState
-    super.initState();
+    adloader = Timer.periodic(
+      const Duration(seconds: 3),
+          (timer)async {
+        adsService.interstitialAd.load();
 
+      },
+    );
+    super.initState();
 
    // adsService.interstitialAd.load();
   }
 
 
-getFile()async{
+getPermission()async{
     var permission=  Permission.storage;
     if(await permission.isGranted){
-      String filepath = (await getExternalStorageDirectory()).path;
-      permission.request();
-      String newpath = "";
-      List<String> listFolders = filepath.split("/");
-      for (int i = 1; i < listFolders.length; i++) {
-        String s = listFolders[i];
-        if (s != "Android") {
-          newpath = newpath + "/" + s;
-        }
-        else {
-          break;
-        }
-      }
-      newpath = newpath + "/" + "insta";
-      _permanentPath = newpath;
-      Directory d = Directory(newpath);
 
-      if(!await d.exists()){
-        d.create(recursive: true);
-      }
-      print(_permanentPath);
-      listOfFile = Directory("$_permanentPath/").listSync();
-      print(listOfFile);
 
     }
      else if(await permission.isPermanentlyDenied){
@@ -114,6 +103,14 @@ getFile()async{
     bottomNavigationBar: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+       pageIndex==0? Container(
+          height: 50,
+          child: AdWidget(
+            ad:adsService.createbannerAd()..load(),
+            key: UniqueKey(),
+          ),
+
+        ):Container(),
         Theme(
           data: Theme.of(context).copyWith(
               primaryColor:bottomBarIconColor
@@ -126,7 +123,7 @@ getFile()async{
                     pageIndex=  val;
                   });
                 }else{
-                  getFile();
+                 _instaFeed.getPermission([]);
                 }
 
               },
@@ -145,14 +142,7 @@ getFile()async{
               ]
           ),
         ),
-        // Container(
-        //   height: 50,
-        //   child: AdWidget(
-        //     ad:adsService.createbannerAd()..load(),
-        //     key: UniqueKey(),
-        //   ),
-        //
-        // ),
+
 
       ],
     )
@@ -246,6 +236,7 @@ return localHome(feedUrl.text, context);
 
 
                           setState(() {
+                            isFeedUrlEmpty = false;
                             loading = true;
                           });
                           print(feedUrl.text);
@@ -256,6 +247,7 @@ return localHome(feedUrl.text, context);
                             controller.clear();
 
                             await _instaFeed.initialize(feedUrl.text);
+
                             // controller[0]?.dispose();
                             for(int i=0;i<_instaFeed.posts.length;i++){
                               VideoPlayerController _con;
@@ -271,7 +263,7 @@ return localHome(feedUrl.text, context);
 
 
 
-                            isFeedUrlEmpty = false;
+
 
                           }
                           else{
@@ -331,9 +323,9 @@ return localHome(feedUrl.text, context);
                   SizedBox(width: horSpaceBtwButton,),
                   Expanded(child: GestureDetector(
                     onTap: () async {
-                      getFile();
+
                       //rewardedAd.show();
-                      await adsService.interstitialAd.load();
+                      //await adsService.interstitialAd.load();
 
                       await adsService.interstitialAd.show();
 
@@ -341,8 +333,9 @@ return localHome(feedUrl.text, context);
                       if (!isFeedUrlEmpty) {
                         //feedUrl.text != null
                         //  await _instaFeed.getImageFromFeedUrl();
+                        _instaFeed.getPermission(_instaFeed.posts);
 
-                        await _instaFeed.addToDownloadQueue(_instaFeed.posts);
+                        return toaster();
                       }
                     },
                     child: Container(
@@ -393,119 +386,89 @@ return localHome(feedUrl.text, context);
 
                 ),
                 child: isFeedUrlEmpty ? Center(
-                    child: Text('Enter the url add Ad')) :
+                    child: Container()) :
                 //Container()
                 loading ? Center(child: loadingWidget()) :
                 Container(
                   width: size.width*0.8,
                   color: Colors.black,
                   padding: EdgeInsets.all(8.0),
-                  child: CarouselSlider.builder(
-                    carouselController: _carouselSliderController,
-                    options: CarouselOptions(
+                  child: PageView.builder(
+                    controller: pageController,
 
-                      // height: 400,
-                      // aspectRatio: 16/9,
-                      viewportFraction: 1,
-                      enableInfiniteScroll: false,
-                      initialPage: 0,
-                      //    enableInfiniteScroll: true,
-                      reverse: false,
-                      // autoPlay: true,
-                      // autoPlayInterval: Duration(seconds: 3),
-                      // autoPlayAnimationDuration: Duration(milliseconds: 800),
-                      // autoPlayCurve: Curves.fastOutSlowIn,
-
-                      enlargeCenterPage: true,
-
-                      scrollDirection: Axis.horizontal,
-                    ),
                     itemCount: _instaFeed.posts.length,
                     itemBuilder: (BuildContext context,postindex){
-                      return Stack(
-                        // mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('${postindex+1}/${_instaFeed
-                              .posts.length}',style: TextStyle(
-                              color: homeButtonTextColor
-                          ),),
-                          _instaFeed
-                              .posts[postindex].isVideo ? GestureDetector(
-                              onTap: () async {
-                                return    Navigator.push(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (_, __, ___) => ImagePreview(filepath:_instaFeed.posts ,isFile: false,file: File(''),),
-                                    transitionDuration: Duration(seconds: 0),
-                                  ),
-                                );
-                                // return    Navigator.push(
-                                //   context,
-                                //   PageRouteBuilder(
-                                //     pageBuilder: (_, __, ___) => VideoPreviewPage(filepath:_instaFeed.posts[postindex].contentUrl,isFile: false,),
-                                //     transitionDuration: Duration(seconds: 0),
-                                //   ),
-                                // );
-                              },
-                              child: Stack(
-                                children: [
-                                  Center(
-                                    child: FutureBuilder(
-                                      future: _initializeVideoPlayerFuture,
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.done) {
+                      return GestureDetector(
+                        onTap: ()async{
+                         // await adsService.interstitialAd.show();
 
-                                          return AspectRatio(aspectRatio: controller[postindex].value.aspectRatio,child: VideoPlayer(controller[postindex]));
-                                        } else {
-                                          return Center(child: loadingWidget());
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                  Container(
-
-                                      child: Center(child: Icon(
-                                        Icons.play_arrow,
-                                        color: homeButtonIconColor,
-                                      ),))
-                                ],
-                              )) :
-                          Stack(
+                          return    Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (_, __, ___) => MediaPreview(filepath:_instaFeed.posts ,isFile: false,file: File(''),),
+                              transitionDuration: Duration(seconds: 0),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          child: Stack(
+                            // mainAxisSize: MainAxisSize.min,
                             children: [
-                              CachedNetworkImage(
-                                imageUrl: _instaFeed.posts[postindex].displayUrl,
-                                imageBuilder: (context, imageProvider) =>
-                                    GestureDetector(
-                                      onTap: (){
-                                        return    Navigator.push(
-                                          context,
-                                          PageRouteBuilder(
-                                            pageBuilder: (_, __, ___) => ImagePreview(filepath:_instaFeed.posts ,isFile: false,file: File(''),),
-                                            transitionDuration: Duration(seconds: 0),
-                                          ),
-                                        );
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          image: DecorationImage(
-                                            image: imageProvider,
-                                            // fit: BoxFit.scaleDown,
-                                            // colorFilter:
-                                            // ColorFilter.mode(Colors.red, BlendMode.colorBurn)
-                                          ),
+                              Text('${postindex+1}/${_instaFeed
+                                  .posts.length}',style: TextStyle(
+                                  color: homeButtonTextColor
+                              ),),
+                              _instaFeed
+                                  .posts[postindex].isVideo ? Stack(
+                                    children: [
+                                      Center(
+                                        child: FutureBuilder(
+                                          future: _initializeVideoPlayerFuture,
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState ==
+                                                ConnectionState.done) {
+
+                                              return AspectRatio(aspectRatio: controller[postindex].value.aspectRatio,child: VideoPlayer(controller[postindex]));
+                                            } else {
+                                              return Center(child: loadingWidget());
+                                            }
+                                          },
                                         ),
                                       ),
-                                    ),
-                                placeholder: (context, url) =>
-                                    Center(child: loadingWidget()),
-                                errorWidget: (context, url, error) =>
-                                    Icon(Icons.error),
-                              ),
-                              Center(child: Icon(Icons.play_arrow))
+                                      Container(
+
+                                          child: Center(child: Icon(
+                                            Icons.play_arrow,
+                                            color: homeButtonIconColor,
+                                          ),))
+                                    ],
+                                  ) :
+                              Stack(
+                                children: [
+                                  CachedNetworkImage(
+                                    imageUrl: _instaFeed.posts[postindex].displayUrl,
+                                    imageBuilder: (context, imageProvider) =>
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                              image: imageProvider,
+                                              // fit: BoxFit.scaleDown,
+                                              // colorFilter:
+                                              // ColorFilter.mode(Colors.red, BlendMode.colorBurn)
+                                            ),
+                                          ),
+                                        ),
+                                    placeholder: (context, url) =>
+                                        Center(child: loadingWidget()),
+                                    errorWidget: (context, url, error) =>
+                                        Icon(Icons.error),
+                                  ),
+                                  Center(child: Icon(Icons.play_arrow))
+                                ],
+                              )
                             ],
-                          )
-                        ],
+                          ),
+                        ),
                       );
 
                     },
