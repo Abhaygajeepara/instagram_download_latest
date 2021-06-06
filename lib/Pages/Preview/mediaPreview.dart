@@ -44,6 +44,7 @@ class _MediaPreviewState extends State<MediaPreview>  with SingleTickerProviderS
     // TODO: implement dispose
     _animationController.dispose();
     _videoPlayerController?.dispose();
+    SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.top]);
     super.dispose();
 
   }
